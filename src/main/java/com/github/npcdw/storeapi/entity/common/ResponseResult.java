@@ -1,5 +1,9 @@
 package com.github.npcdw.storeapi.entity.common;
 
+import io.vertx.core.json.JsonObject;
+
+import java.io.IOException;
+
 /**
  * 返回结果包装类
  */
@@ -9,34 +13,29 @@ public class ResponseResult<T> {
     private String message;
     private T data;
 
-    public static ResponseResult<Void> ok() {
-        ResponseResult<Void> responseResult = new ResponseResult<>();
-        responseResult.setSuccess(true);
-        responseResult.setCode(20000);
-        responseResult.setMessage("成功");
+    public static JsonObject ok() {
+        JsonObject responseResult = new JsonObject();
+        responseResult.put("success", true);
+        responseResult.put("code", 20000);
+        responseResult.put("message", "成功");
         return responseResult;
     }
 
-    public static <T> ResponseResult<T> ok(T data) {
-        ResponseResult<T> responseResult = new ResponseResult<>();
-        responseResult.setSuccess(true);
-        responseResult.setCode(20000);
-        responseResult.setMessage("成功");
-        responseResult.setData(data);
+    public static <T> JsonObject ok(T data) {
+        JsonObject responseResult = new JsonObject();
+        responseResult.put("success", true);
+        responseResult.put("code", 20000);
+        responseResult.put("message", "成功");
+        responseResult.put("data", data);
         return responseResult;
     }
 
-    public static <T> ResponseResult<T> error(String message) {
-        ResponseResult<T> responseResult = new ResponseResult<>();
-        responseResult.setSuccess(false);
-        responseResult.setCode(50000);
-        responseResult.setMessage(message);
+    public static <T> JsonObject error(String message) {
+        JsonObject responseResult = new JsonObject();
+        responseResult.put("success", false);
+        responseResult.put("code", 50000);
+        responseResult.put("message", message);
         return responseResult;
-    }
-
-    public ResponseResult<T> message(String message) {
-        this.setMessage(message);
-        return this;
     }
 
     public Boolean getSuccess() {
