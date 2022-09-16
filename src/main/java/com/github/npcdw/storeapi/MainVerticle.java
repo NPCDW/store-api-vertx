@@ -14,7 +14,8 @@ public class MainVerticle extends AbstractVerticle {
         SqliteConfig.init(vertx);
 
         // Create a Router
-        Router router = RouterConfig.init(vertx);;
+        Router router = RouterConfig.init(vertx);
+        ;
 
         vertx.createHttpServer()
             // Handle every request using the router
