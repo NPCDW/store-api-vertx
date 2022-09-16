@@ -32,7 +32,7 @@ public class SqliteConfig {
         //判断数据表是否存在
         pool.query("SELECT * FROM goods").execute()
             .onSuccess(rows -> {
-                System.out.println("DB is exist");
+                System.out.println("DB is normal");
             })
             .onFailure(ex -> {
                 System.out.println("DB isn't exist, start init db");

@@ -1,5 +1,6 @@
 package com.github.npcdw.storeapi.config;
 
+import com.github.npcdw.storeapi.entity.consts.GlobalConst;
 import com.github.npcdw.storeapi.service.GoodsService;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
@@ -10,13 +11,14 @@ public class RouterConfig {
         Router router = Router.router(vertx);
 
         GoodsService goodsService = new GoodsService();
+        String prefix = GlobalConst.GLOBAL_API_PREFIX + "/goods";
         // Mount the handler for all incoming requests at every path and HTTP method
-        router.get("/goods/list").handler(goodsService::list);
-        router.get("/goods/getInfo/:id").handler(goodsService::getInfo);
-        router.get("/goods/getInfoByQRCode").handler(goodsService::getInfoByQRCode);
-        router.post("/goods/create").handler(goodsService::create);
-        router.put("/goods/update").handler(goodsService::update);
-        router.delete("/goods/remove/:id").handler(goodsService::remove);
+        router.get(prefix + "/list").handler(goodsService::list);
+        router.get(prefix + "/getInfo/:id").handler(goodsService::getInfo);
+        router.get(prefix + "/getInfoByQRCode").handler(goodsService::getInfoByQRCode);
+        router.post(prefix + "/create").handler(goodsService::create);
+        router.put(prefix + "/update").handler(goodsService::update);
+        router.delete(prefix + "/remove/:id").handler(goodsService::remove);
         return router;
     }
 
