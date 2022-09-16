@@ -4,10 +4,12 @@ import com.github.npcdw.storeapi.entity.Goods;
 import com.github.npcdw.storeapi.entity.common.ResponseResult;
 import com.github.npcdw.storeapi.entity.common.TableInfo;
 import com.github.npcdw.storeapi.mapper.GoodsMapper;
+import com.github.npcdw.storeapi.util.SnowFlakeUtil;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 
@@ -70,6 +72,9 @@ public class GoodsService {
 
     public void create(RoutingContext context) {
         Goods goods = context.body().asPojo(Goods.class);
+        if (StringUtils.isBlank(goods.getQrcode())) {
+            goods.setQrcode(-SnowFlakeUtil.nextId() + "");
+        }
 
         goodsMapper.insert(goods)
                 .onFailure(e -> {

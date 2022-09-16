@@ -89,15 +89,19 @@ public class GoodsMapper {
 
     public Future<SqlResult<Void>> update(Goods record) {
         record.setUpdateTime(new Date());
+
+        String sql = "update goods set" +
+            "   update_time = #{update_time}," +
+            (StringUtils.isBlank(record.getQrcode()) ? "" : "   qrcode = #{qrcode},") +
+            (StringUtils.isBlank(record.getName()) ? "" : "   name = #{name},") +
+            (StringUtils.isBlank(record.getCover()) ? "" : "   cover = #{cover},") +
+            (record.getPrice() == null ? "" : "   price = #{price},") +
+            " where id = #{id}";
+        StringBuilder str = new StringBuilder(sql);
+        str.deleteCharAt(sql.lastIndexOf(","));
+        sql = str.toString();
         return SqlTemplate
-            .forUpdate(SqliteConfig.pool,
-                "update goods set" +
-                    "   update_time = #{update_time}," +
-                    "   qrcode = #{qrcode}," +
-                    "   name = #{name}," +
-                    "   cover = #{cover}," +
-                    "   price = #{price}" +
-                    " where id = #{id}")
+            .forUpdate(SqliteConfig.pool, sql)
             .mapFrom(PARAMETERS_GOODS_MAPPER)
             .execute(record);
     }
