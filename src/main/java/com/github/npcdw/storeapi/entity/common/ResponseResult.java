@@ -18,6 +18,7 @@ public class ResponseResult<T> {
         responseResult.put("success", true);
         responseResult.put("code", 20000);
         responseResult.put("message", "成功");
+        responseResult.put("data", null);
         return responseResult;
     }
 
@@ -35,6 +36,7 @@ public class ResponseResult<T> {
         responseResult.put("success", false);
         responseResult.put("code", 50000);
         responseResult.put("message", message);
+        responseResult.put("data", null);
         return responseResult;
     }
 

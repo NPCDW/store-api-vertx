@@ -4,6 +4,7 @@ import com.github.npcdw.storeapi.entity.consts.GlobalConst;
 import com.github.npcdw.storeapi.service.GoodsService;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 
 public class RouterConfig {
 
@@ -16,8 +17,8 @@ public class RouterConfig {
         router.get(prefix + "/list").handler(goodsService::list);
         router.get(prefix + "/getInfo/:id").handler(goodsService::getInfo);
         router.get(prefix + "/getInfoByQRCode").handler(goodsService::getInfoByQRCode);
-        router.post(prefix + "/create").handler(goodsService::create);
-        router.put(prefix + "/update").handler(goodsService::update);
+        router.post(prefix + "/create").handler(BodyHandler.create()).handler(goodsService::create);
+        router.put(prefix + "/update").handler(BodyHandler.create()).handler(goodsService::update);
         router.delete(prefix + "/remove/:id").handler(goodsService::remove);
         return router;
     }

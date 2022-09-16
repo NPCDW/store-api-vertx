@@ -2,6 +2,7 @@ package com.github.npcdw.storeapi.mapper;
 
 import com.github.npcdw.storeapi.config.SqliteConfig;
 import com.github.npcdw.storeapi.entity.Goods;
+import com.github.npcdw.storeapi.util.DateTimeUtil;
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -9,9 +10,11 @@ import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.templates.RowMapper;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import io.vertx.sqlclient.templates.TupleMapper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,8 +34,8 @@ public class GoodsMapper {
     RowMapper<Goods> ROW_GOODS_MAPPER = row -> {
         Goods goods = new Goods();
         goods.setId(row.getInteger("id"));
-        goods.setCreateTime(row.getLocalDateTime("create_time"));
-        goods.setUpdateTime(row.getLocalDateTime("update_time"));
+        goods.setCreateTime(DateTimeUtil.parseDateTime(row.getString("create_time")));
+        goods.setUpdateTime(DateTimeUtil.parseDateTime(row.getString("update_time")));
         goods.setQrcode(row.getString("qrcode"));
         goods.setName(row.getString("name"));
         goods.setCover(row.getString("cover"));
@@ -49,7 +52,7 @@ public class GoodsMapper {
             .forQuery(SqliteConfig.pool,
                 "SELECT count(*)" +
                     " FROM goods" +
-                    " WHERE name like '%'||#{name}||'%'")
+                    (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'"))
             .execute(parameters)
             .compose(rows -> {
                 for (Row row : rows) {
@@ -63,14 +66,14 @@ public class GoodsMapper {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", name);
         parameters.put("start", (pageNumber - 1) * pageSize);
-        parameters.put("pageNumber", pageNumber);
+        parameters.put("pageSize", pageSize);
 
         return SqlTemplate
             .forQuery(SqliteConfig.pool,
                 "SELECT id, create_time, update_time, qrcode, name, cover, price" +
                     " FROM goods" +
-                    " WHERE name like '%'||#{name}||'%'" +
-                    " limit #{start}, #{pageSize}")
+                    (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'") +
+                    " LIMIT #{pageSize} OFFSET #{start}")
             .mapTo(ROW_GOODS_MAPPER)
             .execute(parameters);
     }
@@ -85,10 +88,11 @@ public class GoodsMapper {
     }
 
     public Future<SqlResult<Void>> update(Goods record) {
+        record.setUpdateTime(new Date());
         return SqlTemplate
             .forUpdate(SqliteConfig.pool,
                 "update goods set" +
-                    "   update_time = " + LocalDateTime.now() + "," +
+                    "   update_time = #{update_time}," +
                     "   qrcode = #{qrcode}," +
                     "   name = #{name}," +
                     "   cover = #{cover}," +
