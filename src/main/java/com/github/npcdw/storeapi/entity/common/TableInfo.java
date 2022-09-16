@@ -1,5 +1,8 @@
 package com.github.npcdw.storeapi.entity.common;
 
+import io.vertx.sqlclient.RowSet;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class TableInfo<T> {
@@ -15,6 +18,14 @@ public class TableInfo<T> {
     public TableInfo(Integer count, List<T> list) {
         this.count = count;
         this.list = list;
+    }
+
+    public TableInfo(Integer count, RowSet<T> list) {
+        this.count = count;
+        this.list = new ArrayList<T>();
+        for (T t : list) {
+            this.list.add(t);
+        }
     }
 
     public Integer getCount() {
