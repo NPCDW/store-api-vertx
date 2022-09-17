@@ -10,10 +10,13 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
 public class GoodsService {
+    private static final Logger log = LoggerFactory.getLogger(GoodsService.class);
     private final GoodsMapper goodsMapper = new GoodsMapper();
 
     public void list(RoutingContext context) {
@@ -24,23 +27,20 @@ public class GoodsService {
 
         goodsMapper.count(name)
                 .onFailure(e -> {
-                    e.printStackTrace();
+                    log.error("Goods count fail", e);
                     context.json(ResponseResult.error("获取失败"));
                 })
                 .onSuccess(count -> {
-                    System.out.println(count);
                     if (count <= 0) {
                         context.json(ResponseResult.ok(new TableInfo<Goods>(0, new ArrayList<>())));
                         return;
                     }
                     goodsMapper.list(pageNumber, pageSize, name)
                             .onFailure(e -> {
-                                e.printStackTrace();
+                                log.error("Goods list fail", e);
                                 context.json(ResponseResult.error("获取失败"));
                             })
-                            .onSuccess(rows -> {
-                                System.out.println(rows.size() + " " + rows.rowCount());
-                                context.json(ResponseResult.ok(new TableInfo<>(count, rows)));});
+                            .onSuccess(rows -> context.json(ResponseResult.ok(new TableInfo<>(count, rows))));
                 });
     }
 
@@ -49,7 +49,7 @@ public class GoodsService {
 
         goodsMapper.getById(id)
                 .onFailure(e -> {
-                    e.printStackTrace();
+                    log.error("Goods getById fail", e);
                     context.json(ResponseResult.error("获取失败"));
                 })
                 .onSuccess(info -> {
@@ -62,7 +62,7 @@ public class GoodsService {
 
         goodsMapper.getByQRCode(qrcode)
                 .onFailure(e -> {
-                    e.printStackTrace();
+                    log.error("Goods getByQRCode fail", e);
                     context.json(ResponseResult.error("获取失败"));
                 })
                 .onSuccess(info -> {
@@ -78,7 +78,7 @@ public class GoodsService {
 
         goodsMapper.insert(goods)
                 .onFailure(e -> {
-                    e.printStackTrace();
+                    log.error("Goods insert fail", e);
                     context.json(ResponseResult.error("添加失败"));
                 })
                 .onSuccess(result -> {
@@ -96,7 +96,7 @@ public class GoodsService {
 
         goodsMapper.update(goods)
                 .onFailure(e -> {
-                    e.printStackTrace();
+                    log.error("Goods update fail", e);
                     context.json(ResponseResult.error("更新失败"));
                 })
                 .onSuccess(result -> {
@@ -113,7 +113,7 @@ public class GoodsService {
 
         goodsMapper.delete(id)
                 .onFailure(e -> {
-                    e.printStackTrace();
+                    log.error("Goods delete fail", e);
                     context.json(ResponseResult.error("删除失败"));
                 })
                 .onSuccess(result -> {

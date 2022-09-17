@@ -1,6 +1,11 @@
 package com.github.npcdw.storeapi.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SnowFlakeUtil {
+    private static final Logger log = LoggerFactory.getLogger(SnowFlakeUtil.class);
+
     private static final long workerId = 1;
     private static final long datacenterId = 1;
 
@@ -32,7 +37,7 @@ public class SnowFlakeUtil {
         long timestamp = timeGen();
         // 如果生成的时间戳比之前最后一次生成的时间戳小，说明时间被回调了
         if (timestamp < lastTimestamp) {
-            System.err.printf("clock is moving backwards.  Rejecting requests until %d.", lastTimestamp);
+            log.error("clock is moving backwards.  Rejecting requests until {}.", lastTimestamp);
             throw new RuntimeException(String.format("Clock moved backwards.  Refusing to generate id for %d milliseconds",
                     lastTimestamp - timestamp));
         }
