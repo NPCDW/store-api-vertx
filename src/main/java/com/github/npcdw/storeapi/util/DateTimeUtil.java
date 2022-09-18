@@ -1,5 +1,7 @@
 package com.github.npcdw.storeapi.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -37,11 +39,17 @@ public class DateTimeUtil {
     }
 
     public static String formatDateTime(Date date) {
+        if (date == null) {
+            return null;
+        }
         SimpleDateFormat sdf = new SimpleDateFormat(DATETIME_FORMAT_PATTERN);
         return sdf.format(date);
     }
 
     public static Date parseDateTime(String date) {
+        if (StringUtils.isBlank(date)) {
+            return null;
+        }
         try {
             SimpleDateFormat sdf = new SimpleDateFormat(DATETIME_FORMAT_PATTERN);
             return sdf.parse(date);

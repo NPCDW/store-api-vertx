@@ -20,6 +20,7 @@ public class GoodsService {
     private final GoodsMapper goodsMapper = new GoodsMapper();
 
     public void list(RoutingContext context) {
+        log.info("1");
         MultiMap queryParams = context.queryParams();
         int pageNumber = queryParams.contains("pageNumber") ? Integer.parseInt(queryParams.get("pageNumber")) : 0;
         int pageSize = queryParams.contains("pageSize") ? Integer.parseInt(queryParams.get("pageSize")) : 0;
@@ -31,6 +32,7 @@ public class GoodsService {
                     context.json(ResponseResult.error("获取失败"));
                 })
                 .onSuccess(count -> {
+                    log.info("4");
                     if (count <= 0) {
                         context.json(ResponseResult.ok(new TableInfo<Goods>(0, new ArrayList<>())));
                         return;
@@ -40,7 +42,10 @@ public class GoodsService {
                                 log.error("Goods list fail", e);
                                 context.json(ResponseResult.error("获取失败"));
                             })
-                            .onSuccess(rows -> context.json(ResponseResult.ok(new TableInfo<>(count, rows))));
+                            .onSuccess(list -> {
+                                log.info("7");
+                                context.json(ResponseResult.ok(new TableInfo<>(count, list)));
+                            });
                 });
     }
 
@@ -82,9 +87,8 @@ public class GoodsService {
                     context.json(ResponseResult.error("添加失败"));
                 })
                 .onSuccess(result -> {
-                    if (result.rowCount() > 0) {
-                        long id = result.property(JDBCPool.GENERATED_KEYS).getLong(0);
-                        context.json(ResponseResult.ok(id));
+                    if (result > 0) {
+                        context.json(ResponseResult.ok(goods.getId()));
                     } else {
                         context.json(ResponseResult.error("添加失败"));
                     }
@@ -100,7 +104,7 @@ public class GoodsService {
                     context.json(ResponseResult.error("更新失败"));
                 })
                 .onSuccess(result -> {
-                    if (result.rowCount() > 0) {
+                    if (result > 0) {
                         context.json(ResponseResult.ok());
                     } else {
                         context.json(ResponseResult.error("更新失败"));
@@ -117,7 +121,7 @@ public class GoodsService {
                     context.json(ResponseResult.error("删除失败"));
                 })
                 .onSuccess(result -> {
-                    if (result.rowCount() > 0) {
+                    if (result > 0) {
                         context.json(ResponseResult.ok());
                     } else {
                         context.json(ResponseResult.error("数据不存在"));

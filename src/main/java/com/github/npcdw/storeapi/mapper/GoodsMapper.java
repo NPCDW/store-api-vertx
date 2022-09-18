@@ -4,6 +4,7 @@ import com.github.npcdw.storeapi.config.SqliteConfig;
 import com.github.npcdw.storeapi.entity.Goods;
 import com.github.npcdw.storeapi.util.DateTimeUtil;
 import io.vertx.core.Future;
+import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlResult;
@@ -11,19 +12,20 @@ import io.vertx.sqlclient.templates.RowMapper;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import io.vertx.sqlclient.templates.TupleMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class GoodsMapper {
+    private static final Logger log = LoggerFactory.getLogger(GoodsMapper.class);
+
     TupleMapper<Goods> PARAMETERS_GOODS_MAPPER = TupleMapper.mapper(user -> {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("id", user.getId());
-        parameters.put("create_time", user.getCreateTime());
-        parameters.put("update_time", user.getUpdateTime());
+        parameters.put("create_time", DateTimeUtil.formatDateTime(user.getCreateTime()));
+        parameters.put("update_time", DateTimeUtil.formatDateTime(user.getUpdateTime()));
         parameters.put("qrcode", user.getQrcode());
         parameters.put("name", user.getName());
         parameters.put("cover", user.getCover());
@@ -45,6 +47,7 @@ public class GoodsMapper {
 
 
     public Future<Integer> count(String name) {
+        log.info("2");
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", name);
 
@@ -55,14 +58,23 @@ public class GoodsMapper {
                     (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'"))
             .execute(parameters)
             .compose(rows -> {
+                log.info("3");
                 for (Row row : rows) {
                     return Future.succeededFuture(row.getInteger(0));
                 }
-                return null;
+                return Future.failedFuture("未查询到任何内容");
             });
     }
 
-    public Future<RowSet<Goods>> list(int pageNumber, int pageSize, String name) {
+    public Future<List<Goods>> list(int pageNumber, int pageSize, String name) {
+        log.info("5");
+        if (pageSize % 2 == 0) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", name);
         parameters.put("start", (pageNumber - 1) * pageSize);
@@ -75,19 +87,32 @@ public class GoodsMapper {
                     (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'") +
                     " LIMIT #{pageSize} OFFSET #{start}")
             .mapTo(ROW_GOODS_MAPPER)
-            .execute(parameters);
+            .execute(parameters)
+            .compose(rows -> {
+                log.info("6");
+                List<Goods> list = new ArrayList<>();
+                for (Goods row : rows) {
+                    list.add(row);
+                }
+                return Future.succeededFuture(list);
+            });
     }
 
-    public Future<SqlResult<Void>> insert(Goods record) {
+    public Future<Integer> insert(Goods record) {
         return SqlTemplate
             .forUpdate(SqliteConfig.pool,
                 "insert into goods (qrcode, name, cover, price)" +
                     " values (#{qrcode}, #{name}, #{cover}, #{price})")
             .mapFrom(PARAMETERS_GOODS_MAPPER)
-            .execute(record);
+            .execute(record)
+            .compose(result -> {
+                int id = result.property(JDBCPool.GENERATED_KEYS).getInteger(0);
+                record.setId(id);
+                return Future.succeededFuture(result.rowCount());
+            });
     }
 
-    public Future<SqlResult<Void>> update(Goods record) {
+    public Future<Integer> update(Goods record) {
         record.setUpdateTime(new Date());
 
         String sql = "update goods set" +
@@ -103,20 +128,22 @@ public class GoodsMapper {
         return SqlTemplate
             .forUpdate(SqliteConfig.pool, sql)
             .mapFrom(PARAMETERS_GOODS_MAPPER)
-            .execute(record);
+            .execute(record)
+            .compose(result -> Future.succeededFuture(result.rowCount()));
     }
 
-    public Future<SqlResult<Void>> delete(Integer id) {
+    public Future<Integer> delete(Integer id) {
         Map<String, Object> parameters = Collections.singletonMap("id", id);
 
         return SqlTemplate
             .forUpdate(SqliteConfig.pool,
                 "delete from goods" +
                     " where id = #{id}")
-            .execute(parameters);
+            .execute(parameters)
+            .compose(result -> Future.succeededFuture(result.rowCount()));
     }
 
-    public Future<RowSet<Goods>> getById(Integer id) {
+    public Future<Goods> getById(Integer id) {
         Map<String, Object> parameters = Collections.singletonMap("id", id);
 
         return SqlTemplate
@@ -125,10 +152,19 @@ public class GoodsMapper {
                     " FROM goods" +
                     " WHERE id = #{id}")
             .mapTo(ROW_GOODS_MAPPER)
-            .execute(parameters);
+            .execute(parameters)
+            .compose(rows -> {
+                if (rows.size() > 1) {
+                    return Future.failedFuture("required a single bean, but more were found");
+                }
+                for (Goods row : rows) {
+                    return Future.succeededFuture(row);
+                }
+                return Future.succeededFuture(null);
+            });
     }
 
-    public Future<RowSet<Goods>> getByQRCode(String qrcode) {
+    public Future<Goods> getByQRCode(String qrcode) {
         Map<String, Object> parameters = Collections.singletonMap("qrcode", qrcode);
 
         return SqlTemplate
@@ -137,7 +173,16 @@ public class GoodsMapper {
                     " FROM goods" +
                     " WHERE qrcode = #{qrcode}")
             .mapTo(ROW_GOODS_MAPPER)
-            .execute(parameters);
+            .execute(parameters)
+            .compose(rows -> {
+                if (rows.size() > 1) {
+                    return Future.failedFuture("required a single bean, but more were found");
+                }
+                for (Goods row : rows) {
+                    return Future.succeededFuture(row);
+                }
+                return Future.succeededFuture(null);
+            });
     }
 
 }
