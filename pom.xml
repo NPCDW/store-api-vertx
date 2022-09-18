@@ -66,6 +66,11 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.39.3.0</version>
         </dependency>
+        <!--    配置支持    -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-config</artifactId>
+        </dependency>
         <!--    json    -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

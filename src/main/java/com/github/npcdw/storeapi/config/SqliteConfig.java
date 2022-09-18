@@ -21,23 +21,25 @@ public class SqliteConfig {
     private static final Logger log = LoggerFactory.getLogger(SqliteConfig.class);
     public static JDBCPool pool;
 
-    public static void init(Vertx vertx) throws Exception {
+    public static Future<Void> init(Vertx vertx) {
         String sqliteFilePath = "/data/sqlite/db/storeapi.db";
-
-        initSqliteFile(sqliteFilePath);
-
+        try {
+            initSqliteFile(sqliteFilePath);
+        } catch (Exception e) {
+            return Future.failedFuture(e);
+        }
         pool = initJDBCPool(vertx, sqliteFilePath);
 
-        initDB(pool);
+        return initDB(pool);
     }
 
-    private static void initDB(JDBCPool pool) {
+    private static Future<Void> initDB(JDBCPool pool) {
         //判断数据表是否存在
-        pool.query("SELECT * FROM goods").execute()
-            .onSuccess(rows -> {
+        return pool.query("SELECT count(*) FROM goods").execute()
+            .compose(rows -> {
                 log.info("DB is normal");
-            })
-            .onFailure(ex -> {
+                return Future.succeededFuture();
+            }, ex -> {
                 log.info("DB isn't exist, start init db");
                 //获取初始化sql
                 String str = null;
@@ -51,10 +53,11 @@ public class SqliteConfig {
                     str = output.toString(StandardCharsets.UTF_8.name());
                 } catch (IOException e) {
                     log.error("获取初始化sql失败", e);
+                    return Future.failedFuture(e);
                 }
                 if (str == null || str.length() == 0) {
                     log.error("read init.sql fail");
-                    return;
+                    return Future.failedFuture(new Exception(""));
                 }
                 //分割并执行sql
                 String[] sqls = str.split(";");
@@ -63,14 +66,16 @@ public class SqliteConfig {
                     if (StringUtils.isBlank(sql)) {
                         continue;
                     }
-                    future = future.compose(res -> pool.preparedQuery(sql).execute(), e -> pool.preparedQuery(sql).execute());
-                    future.onFailure(Throwable::printStackTrace);
+                    future = future.compose(res -> pool.preparedQuery(sql).execute());
                 }
-                future.onComplete(res -> log.info("finish init db"));
+                return future.compose(res -> {
+                    log.info("finish init db");
+                    return Future.succeededFuture();
+                }, Future::failedFuture);
             });
     }
 
-    private static JDBCPool initJDBCPool(Vertx vertx, String filePath) throws Exception {
+    private static JDBCPool initJDBCPool(Vertx vertx, String filePath) {
         return JDBCPool.pool(
             vertx,
             // configure the connection
@@ -83,7 +88,7 @@ public class SqliteConfig {
         );
     }
 
-    private static void initSqliteFile(String filePath) {
+    private static void initSqliteFile(String filePath) throws IOException {
         File file = new File(filePath);
 
         File dir = file.getParentFile();
@@ -96,6 +101,7 @@ public class SqliteConfig {
                 boolean create = file.createNewFile();
             } catch (IOException e) {
                 log.error("创建sqlite文件失败", e);
+                throw e;
             }
         }
     }
