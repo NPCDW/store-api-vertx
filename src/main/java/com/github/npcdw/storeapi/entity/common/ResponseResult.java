@@ -2,8 +2,6 @@ package com.github.npcdw.storeapi.entity.common;
 
 import io.vertx.core.json.JsonObject;
 
-import java.io.IOException;
-
 /**
  * 返回结果包装类
  */

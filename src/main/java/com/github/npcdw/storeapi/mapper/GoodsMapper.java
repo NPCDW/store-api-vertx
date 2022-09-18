@@ -6,8 +6,6 @@ import com.github.npcdw.storeapi.util.DateTimeUtil;
 import io.vertx.core.Future;
 import io.vertx.jdbcclient.JDBCPool;
 import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowSet;
-import io.vertx.sqlclient.SqlResult;
 import io.vertx.sqlclient.templates.RowMapper;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import io.vertx.sqlclient.templates.TupleMapper;
@@ -15,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class GoodsMapper {
@@ -47,7 +44,6 @@ public class GoodsMapper {
 
 
     public Future<Integer> count(String name) {
-        log.info("2");
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", name);
 
@@ -58,7 +54,6 @@ public class GoodsMapper {
                     (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'"))
             .execute(parameters)
             .compose(rows -> {
-                log.info("3");
                 for (Row row : rows) {
                     return Future.succeededFuture(row.getInteger(0));
                 }
@@ -67,14 +62,6 @@ public class GoodsMapper {
     }
 
     public Future<List<Goods>> list(int pageNumber, int pageSize, String name) {
-        log.info("5");
-        if (pageSize % 2 == 0) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", name);
         parameters.put("start", (pageNumber - 1) * pageSize);
@@ -89,7 +76,6 @@ public class GoodsMapper {
             .mapTo(ROW_GOODS_MAPPER)
             .execute(parameters)
             .compose(rows -> {
-                log.info("6");
                 List<Goods> list = new ArrayList<>();
                 for (Goods row : rows) {
                     list.add(row);

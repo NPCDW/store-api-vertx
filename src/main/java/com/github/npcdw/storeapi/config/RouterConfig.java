@@ -5,13 +5,8 @@ import com.github.npcdw.storeapi.service.GoodsService;
 import com.github.npcdw.storeapi.util.SnowFlakeUtil;
 import io.reactiverse.contextual.logging.ContextualData;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.ContextInternal;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.apache.logging.log4j.ThreadContext;
-import org.slf4j.MDC;
-
-import java.awt.image.renderable.ContextualRenderedImageFactory;
 
 public class RouterConfig {
 

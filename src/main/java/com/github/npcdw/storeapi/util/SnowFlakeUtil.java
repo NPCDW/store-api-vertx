@@ -39,7 +39,7 @@ public class SnowFlakeUtil {
         if (timestamp < lastTimestamp) {
             log.error("clock is moving backwards.  Rejecting requests until {}.", lastTimestamp);
             throw new RuntimeException(String.format("Clock moved backwards.  Refusing to generate id for %d milliseconds",
-                    lastTimestamp - timestamp));
+                lastTimestamp - timestamp));
         }
 
         if (lastTimestamp == timestamp) {
@@ -53,9 +53,9 @@ public class SnowFlakeUtil {
 
         lastTimestamp = timestamp;
         return ((timestamp - twepoch) << timestampLeftShift) |
-                (datacenterId << datacenterIdShift) |
-                (workerId << workerIdShift) |
-                sequence;
+            (datacenterId << datacenterIdShift) |
+            (workerId << workerIdShift) |
+            sequence;
     }
 
     private static long tilNextMillis(long lastTimestamp) {
