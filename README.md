@@ -7,7 +7,7 @@
 
 ### 主要功能
 
-`vertx4 + sqlite3`，使用 `vertx-web` 实现 `http` 服务器，以及对 `sqlite` 进行初始化，建表，数据的增删改查。调用链，自动配置，最简单的 `Token` 验证
+`vertx4 + sqlite3`，使用 `vertx-web` 实现 `http` 服务器，以及对 `sqlite` 进行初始化，建表，数据的增删改查。日志调用链，自动配置，最简单的 `Token` 验证
 
 ### 尚未实现
 
