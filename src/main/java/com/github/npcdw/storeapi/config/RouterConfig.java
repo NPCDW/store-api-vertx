@@ -1,5 +1,7 @@
 package com.github.npcdw.storeapi.config;
 
+import com.github.npcdw.storeapi.entity.GlobalConfig;
+import com.github.npcdw.storeapi.entity.common.ResponseResult;
 import com.github.npcdw.storeapi.entity.consts.GlobalConst;
 import com.github.npcdw.storeapi.service.GoodsService;
 import com.github.npcdw.storeapi.util.SnowFlakeUtil;
@@ -13,6 +15,13 @@ public class RouterConfig {
     public static Router init(Vertx vertx) {
         Router router = Router.router(vertx);
         router.route().handler(ctx -> {
+            String token = ctx.request().getHeader("token");
+            if (token == null || !token.equals(GlobalConfig.INSTANCE.getToken())) {
+                ctx.json(ResponseResult.error("token校验失败"));
+            } else {
+                ctx.next();
+            }
+        }).handler(ctx -> {
             long traceId = SnowFlakeUtil.nextId();
             ContextualData.put("traceId", traceId + "");
             ctx.next();

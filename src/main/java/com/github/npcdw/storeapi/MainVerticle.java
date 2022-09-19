@@ -3,6 +3,7 @@ package com.github.npcdw.storeapi;
 import com.github.npcdw.storeapi.config.RouterConfig;
 import com.github.npcdw.storeapi.config.SqliteConfig;
 import com.github.npcdw.storeapi.config.StoreConfig;
+import com.github.npcdw.storeapi.entity.GlobalConfig;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.Router;
@@ -16,7 +17,8 @@ public class MainVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) {
         // Get Config
         StoreConfig.init(vertx).getConfig(result -> {
-            StoreConfig.config = result.result();
+            GlobalConfig.INSTANCE = result.result().mapTo(GlobalConfig.class);
+            int port = GlobalConfig.INSTANCE.getPort();
 
             // Init Sqlite
             SqliteConfig.init(vertx)
@@ -28,10 +30,10 @@ public class MainVerticle extends AbstractVerticle {
                     vertx.createHttpServer()
                         // Handle every request using the router
                         .requestHandler(router)
-                        .listen(8888, http -> {
+                        .listen(port, http -> {
                             if (http.succeeded()) {
                                 startPromise.complete();
-                                log.info("HTTP server started on port 8888");
+                                log.info("HTTP server started on port " + port);
                             } else {
                                 startPromise.fail(http.cause());
                             }

@@ -1,5 +1,6 @@
 package com.github.npcdw.storeapi.config;
 
+import com.github.npcdw.storeapi.entity.GlobalConfig;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.jdbcclient.JDBCConnectOptions;
@@ -22,7 +23,7 @@ public class SqliteConfig {
     public static JDBCPool pool;
 
     public static Future<Void> init(Vertx vertx) {
-        String sqliteFilePath = "/data/sqlite/db/storeapi.db";
+        String sqliteFilePath = GlobalConfig.INSTANCE.getSqlite().getFilepath();
         try {
             initSqliteFile(sqliteFilePath);
         } catch (Exception e) {
@@ -84,7 +85,7 @@ public class SqliteConfig {
                 .setJdbcUrl("jdbc:sqlite:" + filePath),
             // configure the pool
             new PoolOptions()
-                .setMaxSize(5)
+                .setMaxSize(GlobalConfig.INSTANCE.getSqlite().getMaxPoolSize())
         );
     }
 

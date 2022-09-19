@@ -1,0 +1,8 @@
+{
+    "port": 8888,
+    "token": "25413357-a6de-4cae-932f-442474c42eb4",
+    "sqlite": {
+        "filepath": "/data/sqlite/db/storeapi.db",
+        "maxPoolSize": 5
+    }
+}
