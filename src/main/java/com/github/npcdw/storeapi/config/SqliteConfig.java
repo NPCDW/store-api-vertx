@@ -44,7 +44,7 @@ public class SqliteConfig {
                 log.info("DB isn't exist, start init db");
                 //获取初始化sql
                 String str = null;
-                try (InputStream input = SqliteConfig.class.getClassLoader().getResourceAsStream("init.sql");
+                try (InputStream input = SqliteConfig.class.getClassLoader().getResourceAsStream("sqlite/init.sql");
                      ByteArrayOutputStream output = new ByteArrayOutputStream()) {
                     if (input == null) {
                         log.error("read init.sql fail");
