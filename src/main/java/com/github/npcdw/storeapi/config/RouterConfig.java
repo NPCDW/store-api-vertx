@@ -9,8 +9,11 @@ import io.reactiverse.contextual.logging.ContextualData;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RouterConfig {
+    private static final Logger log = LoggerFactory.getLogger(RouterConfig.class);
 
     public static Router init(Vertx vertx) {
         Router router = Router.router(vertx);
@@ -36,6 +39,11 @@ public class RouterConfig {
         router.post(prefix + "/create").handler(BodyHandler.create()).handler(goodsService::create);
         router.put(prefix + "/update").handler(BodyHandler.create()).handler(goodsService::update);
         router.delete(prefix + "/remove/:id").handler(goodsService::remove);
+
+        router.route().failureHandler(ctx -> {
+            log.error("路由：{}，请求体：{}，异常：", ctx.request().uri(), ctx.body().asString(), ctx.failure());
+            ctx.json(ResponseResult.error("INTERNAL SERVER ERROR"));
+        });
         return router;
     }
 

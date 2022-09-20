@@ -2,12 +2,19 @@
 
 !["https://vertx.io"](https://img.shields.io/badge/vert.x-4.3.3-purple.svg)
 !["https://www.sqlite.org"](https://img.shields.io/badge/sqlite-3.39.3-blue.svg)
+!["https://www.oracle.com/java"](https://img.shields.io/badge/jdk-1.8-196d80.svg)
+!["https://maven.apache.org"](https://img.shields.io/badge/maven-3.6.3-orangered.svg)
 
 ## 简介
 
 ### 主要功能
 
-`vertx4 + sqlite3`，使用 `vertx-web` 实现 `http` 服务器，以及对 `sqlite` 进行初始化，建表，数据的增删改查。日志调用链，自动配置，最简单的 `Token` 验证
+* `http` 服务
+* `sqlite` 初始化，建表，数据的增删改查
+* 瘦包部署
+* 日志调用链
+* 自动配置
+* 最简单的 `Token` 验证
 
 ### 尚未实现
 

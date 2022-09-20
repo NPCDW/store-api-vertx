@@ -1,12 +1,15 @@
 package com.github.npcdw.storeapi.entity.builder;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class SqlBuilder {
+    private static final Logger log = LoggerFactory.getLogger(SqlBuilder.class);
     /**
      * 执行SQL的方法
      */
@@ -118,14 +121,6 @@ public class SqlBuilder {
         return this;
     }
 
-    public SqlBuilder orderBy(String order) {
-        if (StringUtils.isBlank(order)) {
-            return this;
-        }
-        this.orderBy = order;
-        return this;
-    }
-
     public SqlBuilder orderBy(String field, String method) {
         if (StringUtils.isBlank(field)) {
             return this;
@@ -135,7 +130,7 @@ public class SqlBuilder {
     }
 
     public SqlBuilder limit(Integer start, Integer length) {
-        this.limit = start + "," + length;
+        this.limit = length + " OFFSET " + start;
         return this;
     }
 
@@ -196,6 +191,7 @@ public class SqlBuilder {
             default:
                 break;
         }
+        log.debug(sql.toString());
         return sql.toString();
     }
 

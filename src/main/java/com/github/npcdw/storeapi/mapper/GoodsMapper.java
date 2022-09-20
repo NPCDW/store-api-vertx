@@ -18,6 +18,8 @@ import java.util.*;
 public class GoodsMapper {
     private static final Logger log = LoggerFactory.getLogger(GoodsMapper.class);
 
+    private static final String fields = "id, create_time, update_time, qrcode, name, cover, price";
+
     TupleMapper<Goods> PARAMETERS_GOODS_MAPPER = TupleMapper.mapper(user -> {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("id", user.getId());
@@ -42,101 +44,15 @@ public class GoodsMapper {
         return goods;
     };
 
-
-    public Future<Integer> count(String name) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("name", name);
-
-        return SqlTemplate
-            .forQuery(SqliteConfig.pool,
-                "SELECT count(*)" +
-                    " FROM goods" +
-                    (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'"))
-            .execute(parameters)
-            .compose(rows -> {
-                for (Row row : rows) {
-                    return Future.succeededFuture(row.getInteger(0));
-                }
-                return Future.failedFuture("未查询到任何内容");
-            });
-    }
-
-    public Future<List<Goods>> list(int pageNumber, int pageSize, String name) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("name", name);
-        parameters.put("start", (pageNumber - 1) * pageSize);
-        parameters.put("pageSize", pageSize);
-
-        return SqlTemplate
-            .forQuery(SqliteConfig.pool,
-                "SELECT id, create_time, update_time, qrcode, name, cover, price" +
-                    " FROM goods" +
-                    (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'") +
-                    " LIMIT #{pageSize} OFFSET #{start}")
-            .mapTo(ROW_GOODS_MAPPER)
-            .execute(parameters)
-            .compose(rows -> {
-                List<Goods> list = new ArrayList<>();
-                for (Goods row : rows) {
-                    list.add(row);
-                }
-                return Future.succeededFuture(list);
-            });
-    }
-
-    public Future<Integer> insert(Goods record) {
-        return SqlTemplate
-            .forUpdate(SqliteConfig.pool,
-                "insert into goods (qrcode, name, cover, price)" +
-                    " values (#{qrcode}, #{name}, #{cover}, #{price})")
-            .mapFrom(PARAMETERS_GOODS_MAPPER)
-            .execute(record)
-            .compose(result -> {
-                int id = result.property(JDBCPool.GENERATED_KEYS).getInteger(0);
-                record.setId(id);
-                return Future.succeededFuture(result.rowCount());
-            });
-    }
-
-    public Future<Integer> update(Goods record) {
-        record.setUpdateTime(new Date());
-
-        String sql = "update goods set" +
-            "   update_time = #{update_time}," +
-            (StringUtils.isBlank(record.getQrcode()) ? "" : "   qrcode = #{qrcode},") +
-            (StringUtils.isBlank(record.getName()) ? "" : "   name = #{name},") +
-            (StringUtils.isBlank(record.getCover()) ? "" : "   cover = #{cover},") +
-            (record.getPrice() == null ? "" : "   price = #{price},") +
-            " where id = #{id}";
-        StringBuilder str = new StringBuilder(sql);
-        str.deleteCharAt(sql.lastIndexOf(","));
-        sql = str.toString();
-        return SqlTemplate
-            .forUpdate(SqliteConfig.pool, sql)
-            .mapFrom(PARAMETERS_GOODS_MAPPER)
-            .execute(record)
-            .compose(result -> Future.succeededFuture(result.rowCount()));
-    }
-
-    public Future<Integer> delete(Integer id) {
-        Map<String, Object> parameters = Collections.singletonMap("id", id);
-
-        return SqlTemplate
-            .forUpdate(SqliteConfig.pool,
-                "delete from goods" +
-                    " where id = #{id}")
-            .execute(parameters)
-            .compose(result -> Future.succeededFuture(result.rowCount()));
-    }
-
     public Future<Goods> getById(Integer id) {
         Map<String, Object> parameters = Collections.singletonMap("id", id);
 
+        String template = "SELECT " + fields +
+            " FROM goods" +
+            " WHERE id = #{id}";
+
         return SqlTemplate
-            .forQuery(SqliteConfig.pool,
-                "SELECT id, create_time, update_time, qrcode, name, cover, price" +
-                    " FROM goods" +
-                    " WHERE id = #{id}")
+            .forQuery(SqliteConfig.pool, template)
             .mapTo(ROW_GOODS_MAPPER)
             .execute(parameters)
             .compose(rows -> {
@@ -153,11 +69,12 @@ public class GoodsMapper {
     public Future<Goods> getByQRCode(String qrcode) {
         Map<String, Object> parameters = Collections.singletonMap("qrcode", qrcode);
 
+        String template = "SELECT " + fields +
+            " FROM goods" +
+            " WHERE qrcode = #{qrcode}";
+
         return SqlTemplate
-            .forQuery(SqliteConfig.pool,
-                "SELECT id, create_time, update_time, qrcode, name, cover, price" +
-                    " FROM goods" +
-                    " WHERE qrcode = #{qrcode}")
+            .forQuery(SqliteConfig.pool, template)
             .mapTo(ROW_GOODS_MAPPER)
             .execute(parameters)
             .compose(rows -> {
@@ -169,6 +86,97 @@ public class GoodsMapper {
                 }
                 return Future.succeededFuture(null);
             });
+    }
+
+    public Future<Integer> count(String name) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", name);
+
+        String template = "SELECT count(*)" +
+            " FROM goods" +
+            (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'");
+
+        return SqlTemplate
+            .forQuery(SqliteConfig.pool, template)
+            .execute(parameters)
+            .compose(rows -> {
+                for (Row row : rows) {
+                    return Future.succeededFuture(row.getInteger(0));
+                }
+                return Future.failedFuture("未查询到任何内容");
+            });
+    }
+
+    public Future<List<Goods>> list(int pageNumber, int pageSize, String name) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", name);
+        parameters.put("start", (pageNumber - 1) * pageSize);
+        parameters.put("pageSize", pageSize);
+
+        String template = "SELECT " + fields +
+            " FROM goods" +
+            (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'") +
+            " LIMIT #{pageSize} OFFSET #{start}";
+
+        return SqlTemplate
+            .forQuery(SqliteConfig.pool, template)
+            .mapTo(ROW_GOODS_MAPPER)
+            .execute(parameters)
+            .compose(rows -> {
+                List<Goods> list = new ArrayList<>();
+                for (Goods row : rows) {
+                    list.add(row);
+                }
+                return Future.succeededFuture(list);
+            });
+    }
+
+    public Future<Integer> insert(Goods record) {
+        String template = "insert into goods (qrcode, name, cover, price)" +
+            " values (#{qrcode}, #{name}, #{cover}, #{price})";
+
+        return SqlTemplate
+            .forUpdate(SqliteConfig.pool, template)
+            .mapFrom(PARAMETERS_GOODS_MAPPER)
+            .execute(record)
+            .compose(result -> {
+                int id = result.property(JDBCPool.GENERATED_KEYS).getInteger(0);
+                record.setId(id);
+                return Future.succeededFuture(result.rowCount());
+            });
+    }
+
+    public Future<Integer> update(Goods record) {
+        record.setUpdateTime(new Date());
+
+        String template = "update goods set" +
+            "   update_time = #{update_time}," +
+            (StringUtils.isBlank(record.getQrcode()) ? "" : "   qrcode = #{qrcode},") +
+            (StringUtils.isBlank(record.getName()) ? "" : "   name = #{name},") +
+            (StringUtils.isBlank(record.getCover()) ? "" : "   cover = #{cover},") +
+            (record.getPrice() == null ? "" : "   price = #{price},") +
+            " where id = #{id}";
+        StringBuilder str = new StringBuilder(template);
+        str.deleteCharAt(template.lastIndexOf(","));
+        template = str.toString();
+
+        return SqlTemplate
+            .forUpdate(SqliteConfig.pool, template)
+            .mapFrom(PARAMETERS_GOODS_MAPPER)
+            .execute(record)
+            .compose(result -> Future.succeededFuture(result.rowCount()));
+    }
+
+    public Future<Integer> delete(Integer id) {
+        Map<String, Object> parameters = Collections.singletonMap("id", id);
+
+        String template = "delete from goods" +
+            " where id = #{id}";
+
+        return SqlTemplate
+            .forUpdate(SqliteConfig.pool, template)
+            .execute(parameters)
+            .compose(result -> Future.succeededFuture(result.rowCount()));
     }
 
 }
