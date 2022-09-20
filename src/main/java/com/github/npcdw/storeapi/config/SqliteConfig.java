@@ -46,6 +46,10 @@ public class SqliteConfig {
                 String str = null;
                 try (InputStream input = SqliteConfig.class.getClassLoader().getResourceAsStream("init.sql");
                      ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                    if (input == null) {
+                        log.error("read init.sql fail");
+                        return Future.failedFuture("read init.sql fail");
+                    }
                     byte[] buffer = new byte[1024];
                     int length;
                     while ((length = input.read(buffer)) != -1) {
@@ -58,7 +62,7 @@ public class SqliteConfig {
                 }
                 if (str == null || str.length() == 0) {
                     log.error("read init.sql fail");
-                    return Future.failedFuture(new Exception(""));
+                    return Future.failedFuture("read init.sql fail");
                 }
                 //分割并执行sql
                 String[] sqls = str.split(";");
