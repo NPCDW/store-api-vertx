@@ -102,7 +102,7 @@ public class GoodsService {
                 if (result > 0) {
                     context.json(ResponseResult.ok());
                 } else {
-                    context.json(ResponseResult.error("更新失败"));
+                    context.json(ResponseResult.error("数据不存在"));
                 }
             });
     }

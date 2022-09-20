@@ -86,6 +86,7 @@ public class SqliteConfig {
             // configure the pool
             new PoolOptions()
                 .setMaxSize(GlobalConfig.INSTANCE.getSqlite().getMaxPoolSize())
+                .setShared(true)
         );
     }
 
