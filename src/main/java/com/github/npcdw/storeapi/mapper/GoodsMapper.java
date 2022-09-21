@@ -18,7 +18,7 @@ import java.util.*;
 public class GoodsMapper {
     private static final Logger log = LoggerFactory.getLogger(GoodsMapper.class);
 
-    private static final String fields = "id, create_time, update_time, qrcode, name, cover, price";
+    private static final String fields = "id, create_time, update_time, qrcode, name, cover, price, unit";
 
     TupleMapper<Goods> PARAMETERS_GOODS_MAPPER = TupleMapper.mapper(user -> {
         Map<String, Object> parameters = new HashMap<>();
@@ -29,6 +29,7 @@ public class GoodsMapper {
         parameters.put("name", user.getName());
         parameters.put("cover", user.getCover());
         parameters.put("price", user.getPrice());
+        parameters.put("unit", user.getUnit());
         return parameters;
     });
 
@@ -41,6 +42,7 @@ public class GoodsMapper {
         goods.setName(row.getString("name"));
         goods.setCover(row.getString("cover"));
         goods.setPrice(row.getBigDecimal("price"));
+        goods.setUnit(row.getString("unit"));
         return goods;
     };
 
@@ -59,10 +61,7 @@ public class GoodsMapper {
                 if (rows.size() > 1) {
                     return Future.failedFuture("required a single bean, but more were found");
                 }
-                for (Goods row : rows) {
-                    return Future.succeededFuture(row);
-                }
-                return Future.succeededFuture(null);
+                return Future.succeededFuture(rows.iterator().next());
             });
     }
 
@@ -81,10 +80,7 @@ public class GoodsMapper {
                 if (rows.size() > 1) {
                     return Future.failedFuture("required a single bean, but more were found");
                 }
-                for (Goods row : rows) {
-                    return Future.succeededFuture(row);
-                }
-                return Future.succeededFuture(null);
+                return Future.succeededFuture(rows.iterator().next());
             });
     }
 
@@ -99,12 +95,7 @@ public class GoodsMapper {
         return SqlTemplate
             .forQuery(SqliteConfig.pool, template)
             .execute(parameters)
-            .compose(rows -> {
-                for (Row row : rows) {
-                    return Future.succeededFuture(row.getInteger(0));
-                }
-                return Future.failedFuture("未查询到任何内容");
-            });
+            .compose(rows -> Future.succeededFuture(rows.iterator().next().getInteger(0)));
     }
 
     public Future<List<Goods>> list(int pageNumber, int pageSize, String name) {
@@ -132,8 +123,8 @@ public class GoodsMapper {
     }
 
     public Future<Integer> insert(Goods record) {
-        String template = "insert into goods (qrcode, name, cover, price)" +
-            " values (#{qrcode}, #{name}, #{cover}, #{price})";
+        String template = "insert into goods (qrcode, name, cover, price, unit)" +
+            " values (#{qrcode}, #{name}, #{cover}, #{price}, #{unit})";
 
         return SqlTemplate
             .forUpdate(SqliteConfig.pool, template)
@@ -155,6 +146,7 @@ public class GoodsMapper {
             (StringUtils.isBlank(record.getName()) ? "" : "   name = #{name},") +
             (StringUtils.isBlank(record.getCover()) ? "" : "   cover = #{cover},") +
             (record.getPrice() == null ? "" : "   price = #{price},") +
+            (record.getUnit() == null ? "" : "   unit = #{unit},") +
             " where id = #{id}";
         StringBuilder str = new StringBuilder(template);
         str.deleteCharAt(template.lastIndexOf(","));

@@ -22,8 +22,8 @@ public class MainVerticle extends AbstractVerticle {
 
             // Init Sqlite
             SqliteConfig.init(vertx)
-                .onFailure(e -> log.error("", e))
-                .onComplete(r -> {
+                .onFailure(e -> startPromise.fail(e.getCause()))
+                .onSuccess(r -> {
                     // Create a Router
                     Router router = RouterConfig.init(vertx);
 

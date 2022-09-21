@@ -15,10 +15,7 @@
 * 日志调用链
 * 自动配置
 * 最简单的 `Token` 验证
-
-### 尚未实现
-
-* 程序升级时如何对已存在的 `sqlite` 数据库进行升级
+* 程序升级时对已存在的 `sqlite` 数据库进行升级（需要修改的地方： `resources/sqlite/upgrade/yyyy-MM-dd-version.sql` , `resources/sqlite/init.sql` , `SqliteConfig` 中的 `versionList` ）
 
 ### 使用目的
 

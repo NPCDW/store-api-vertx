@@ -1,3 +1,13 @@
+create table version
+(
+    id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    version     varchar(20) NOT NULL UNIQUE
+);
+
+insert into `version` (`version`) values ('2022-09-20-00');
+
 create table goods
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
