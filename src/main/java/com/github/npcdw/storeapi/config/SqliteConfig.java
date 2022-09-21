@@ -74,7 +74,7 @@ public class SqliteConfig {
         String currentVersion = rows.iterator().next().getString(0);
         int index = versionList.indexOf(currentVersion);
         if (index == versionList.size() - 1) {
-            log.info("DB version is latest, Current version is {}", currentVersion);
+            log.info("DB version is matched, Current version is {}", currentVersion);
             return Future.succeededFuture();
         }
         log.info("DB version require {}, Current version is {}, start upgrade db", versionList.get(versionList.size() - 1), currentVersion);
