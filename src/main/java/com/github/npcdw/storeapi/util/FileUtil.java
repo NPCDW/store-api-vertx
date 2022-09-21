@@ -1,6 +1,7 @@
 package com.github.npcdw.storeapi.util;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public class FileUtil {

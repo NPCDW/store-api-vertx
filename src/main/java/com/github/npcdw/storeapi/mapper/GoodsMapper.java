@@ -1,13 +1,10 @@
 package com.github.npcdw.storeapi.mapper;
 
-import com.github.npcdw.storeapi.config.SqliteConfig;
 import com.github.npcdw.storeapi.entity.Goods;
 import com.github.npcdw.storeapi.util.DateTimeUtil;
+import com.github.npcdw.storeapi.util.SqlUtil;
 import io.vertx.core.Future;
-import io.vertx.jdbcclient.JDBCPool;
-import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.templates.RowMapper;
-import io.vertx.sqlclient.templates.SqlTemplate;
 import io.vertx.sqlclient.templates.TupleMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,16 +50,7 @@ public class GoodsMapper {
             " FROM goods" +
             " WHERE id = #{id}";
 
-        return SqlTemplate
-            .forQuery(SqliteConfig.pool, template)
-            .mapTo(ROW_GOODS_MAPPER)
-            .execute(parameters)
-            .compose(rows -> {
-                if (rows.size() > 1) {
-                    return Future.failedFuture("required a single bean, but more were found");
-                }
-                return Future.succeededFuture(rows.iterator().next());
-            });
+        return SqlUtil.getOne(template, parameters, ROW_GOODS_MAPPER);
     }
 
     public Future<Goods> getByQRCode(String qrcode) {
@@ -72,16 +60,7 @@ public class GoodsMapper {
             " FROM goods" +
             " WHERE qrcode = #{qrcode}";
 
-        return SqlTemplate
-            .forQuery(SqliteConfig.pool, template)
-            .mapTo(ROW_GOODS_MAPPER)
-            .execute(parameters)
-            .compose(rows -> {
-                if (rows.size() > 1) {
-                    return Future.failedFuture("required a single bean, but more were found");
-                }
-                return Future.succeededFuture(rows.iterator().next());
-            });
+        return SqlUtil.getOne(template, parameters, ROW_GOODS_MAPPER);
     }
 
     public Future<Integer> count(String name) {
@@ -92,10 +71,7 @@ public class GoodsMapper {
             " FROM goods" +
             (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'");
 
-        return SqlTemplate
-            .forQuery(SqliteConfig.pool, template)
-            .execute(parameters)
-            .compose(rows -> Future.succeededFuture(rows.iterator().next().getInteger(0)));
+        return SqlUtil.count(template, parameters);
     }
 
     public Future<List<Goods>> list(int pageNumber, int pageSize, String name) {
@@ -109,32 +85,14 @@ public class GoodsMapper {
             (StringUtils.isBlank(name) ? "" : " WHERE name like '%'||#{name}||'%'") +
             " LIMIT #{pageSize} OFFSET #{start}";
 
-        return SqlTemplate
-            .forQuery(SqliteConfig.pool, template)
-            .mapTo(ROW_GOODS_MAPPER)
-            .execute(parameters)
-            .compose(rows -> {
-                List<Goods> list = new ArrayList<>();
-                for (Goods row : rows) {
-                    list.add(row);
-                }
-                return Future.succeededFuture(list);
-            });
+        return SqlUtil.list(template, parameters, ROW_GOODS_MAPPER);
     }
 
     public Future<Integer> insert(Goods record) {
         String template = "insert into goods (qrcode, name, cover, price, unit)" +
             " values (#{qrcode}, #{name}, #{cover}, #{price}, #{unit})";
 
-        return SqlTemplate
-            .forUpdate(SqliteConfig.pool, template)
-            .mapFrom(PARAMETERS_GOODS_MAPPER)
-            .execute(record)
-            .compose(result -> {
-                int id = result.property(JDBCPool.GENERATED_KEYS).getInteger(0);
-                record.setId(id);
-                return Future.succeededFuture(result.rowCount());
-            });
+        return SqlUtil.insert(template, record, PARAMETERS_GOODS_MAPPER);
     }
 
     public Future<Integer> update(Goods record) {
@@ -146,17 +104,13 @@ public class GoodsMapper {
             (StringUtils.isBlank(record.getName()) ? "" : "   name = #{name},") +
             (StringUtils.isBlank(record.getCover()) ? "" : "   cover = #{cover},") +
             (record.getPrice() == null ? "" : "   price = #{price},") +
-            (record.getUnit() == null ? "" : "   unit = #{unit},") +
+            (StringUtils.isBlank(record.getUnit()) ? "" : "   unit = #{unit},") +
             " where id = #{id}";
         StringBuilder str = new StringBuilder(template);
         str.deleteCharAt(template.lastIndexOf(","));
         template = str.toString();
 
-        return SqlTemplate
-            .forUpdate(SqliteConfig.pool, template)
-            .mapFrom(PARAMETERS_GOODS_MAPPER)
-            .execute(record)
-            .compose(result -> Future.succeededFuture(result.rowCount()));
+        return SqlUtil.exec(template, record, PARAMETERS_GOODS_MAPPER);
     }
 
     public Future<Integer> delete(Integer id) {
@@ -165,10 +119,7 @@ public class GoodsMapper {
         String template = "delete from goods" +
             " where id = #{id}";
 
-        return SqlTemplate
-            .forUpdate(SqliteConfig.pool, template)
-            .execute(parameters)
-            .compose(result -> Future.succeededFuture(result.rowCount()));
+        return SqlUtil.exec(template, parameters);
     }
 
 }

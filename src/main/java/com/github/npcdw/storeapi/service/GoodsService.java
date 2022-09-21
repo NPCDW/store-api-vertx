@@ -83,7 +83,7 @@ public class GoodsService {
             })
             .onSuccess(result -> {
                 if (result > 0) {
-                    context.json(ResponseResult.ok(goods.getId()));
+                    context.json(ResponseResult.ok(result));
                 } else {
                     context.json(ResponseResult.error("添加失败"));
                 }
